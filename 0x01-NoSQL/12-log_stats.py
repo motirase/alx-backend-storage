@@ -1,40 +1,28 @@
 #!/usr/bin/env python3
-"""
-this module contains a Python script that provides some stats about Nginx logs
- stored in MongoDB
-Database: logs
-Collection: nginx
-Display (same as the example):
-first line: x logs where x is the number of documents in this collection
-second line: Methods:
-5 lines with the number of documents with the method = ["GET", "POST", "PUT",
- "PATCH", "DELETE"] in this order (see example below - warning: it’s a
- tabulation before each line)
-one line with the number of documents with:
-method=GET
-path=/status
+"""Defines a function that  provides some stats
+   about Nginx logs stored in MongoDB
 """
 from pymongo import MongoClient
 
 
-def log_stats(mongo_collection):
-    """
-    this function provides some stats about Nginx logs stored in MongoDB
-    """
-    total_logs = mongo_collection.count_documents({})
-    print("{} logs".format(total_logs))
+def nginx_stats_check():
+    """provides some stats about Nginx logs stored in MongoDB:"""
+    client = MongoClient()
+    collection = client.logs.nginx
+
+    doc_count = collection.count_documents({})
+    print('{} logs'.format(doc_count))
+
+    methods_list = ["GET", "POST", "PUT", "PATCH", "DELETE"]
     print("Methods:")
-    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-    for method in methods:
-        documents = mongo_collection.count_documents({"method": method})
-        print("\tmethod {}: {}".format(method, documents))
-    status = mongo_collection.count_documents({"method": "GET",
-                                              "path": "/status"})
-    print("{} status check".format(status))
+    for method in methods_list:
+        method_count = collection.count_documents({"method": method})
+        print('\tmethod {}: {}'.format(method, method_count))
+    status_count = collection.count_documents({
+        "method": "GET", "path": "/status"
+    })
+    print('{} status check'.format(status_count))
 
 
 if __name__ == "__main__":
-    with MongoClient() as client:
-        db = client.logs
-        collection = db.nginx
-        log_stats(collection)
+    nginx_stats_check()
